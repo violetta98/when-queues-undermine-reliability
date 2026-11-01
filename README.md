@@ -1,14 +1,13 @@
 # When Queues Undermine Reliability — experiment artifact
 
 Code, configurations and data behind *When Queues Undermine Reliability: An
-Experimental Study of Message Backlogs in RabbitMQ and Apache Kafka*
-(submitted to MDPI *Future Internet*).
+Experimental Study of Message Backlogs in RabbitMQ and Kafka* (under review).
 
 The experiment asks what a message queue is worth when the consumer does not
 fail but slows down for minutes. A producer publishes 1000 messages/s of 1 KiB,
 each carrying a 60 s deadline; the consumer's capacity is cut fivefold for six
-minutes. Twelve bounding configurations were run three times each on a
-dedicated EC2 instance, with a short-slowdown scenario and a tenfold slowdown
+minutes. Twelve bounding configurations were run three times each on an
+EC2 instance, with a short-slowdown scenario and a tenfold slowdown
 on top — 48 runs. The same configurations were run earlier on a laptop, 51 runs
 in total. Every one of the 27.9 million publish attempts ends in exactly one of
 ten accounted states.
@@ -95,10 +94,11 @@ laptop set (`runs/`, `work/`), so the EC2 numbers need them set as above.
 | Figure 4 (neighbour p99) | EC2 runs | `report.py` → `figures/fig3_neighbour.png` |
 | Figure 5 (Kafka offsets) | EC2 runs | `report.py` → `figures/fig5_kafka_offsets.png` |
 | Figure 6 (slack CDF) | per-message records, EC2 | `report.py` → `figures/fig6_slack.png` |
+| Figure A1 (drain, appendix) | EC2 runs | `report.py` → `figures/fig4_drain.png` |
 
-`report.py` also writes `fig4_drain.png`, model-predicted against measured drain
-time. It is not in the paper; it is the check behind the statement that the
-fluid model predicts drain without a systematic bias.
+Figure A1 is the check behind the statement that the fluid model predicts drain
+time without a systematic bias: measured against predicted, all EC2 runs, median
+ratio 1.04.
 
 Figure 6 counts deliveries of the queue under test only. An earlier version of
 `fig_slack` did not filter on the `queue` column, which pulled the neighbour
@@ -142,7 +142,7 @@ motivating incident applied and which this experiment therefore does not test.
 
 **EC2** (primary): m6i.4xlarge, Intel Xeon Platinum 8375C at 2.90 GHz, 16 vCPU,
 61.8 GiB, Ubuntu 24.04.5, kernel 7.0.0-1014-aws, Docker 29.1.3, overlayfs,
-cgroups v2. Broker data on a dedicated 100 GiB gp3 volume (ext4) mounted at
+cgroups v2. Broker data on a separate 100 GiB gp3 volume (ext4) mounted at
 `/var/lib/docker`. RabbitMQ 4.3.6 on Erlang/OTP 27.3.4.19 with 4 CPU and 1 GiB;
 Kafka 4.3.1 in KRaft mode with 4 CPU, 2 GiB and a 512 MiB heap. Images pinned by
 digest in every run manifest.

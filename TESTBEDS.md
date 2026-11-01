@@ -7,8 +7,8 @@ container limits, and the matching `host.json` sits next to the data.
 
 | Directory | Testbed | Contents |
 |---|---|---|
-| `runs-aws/` + `work-aws/` | **aws** — EC2 m6i.4xlarge, Ubuntu 24.04.5 (kernel 7.0.0-1014-aws), Intel Xeon Platinum 8375C, 16 dedicated vCPU, broker data on a dedicated 100 GiB gp3 volume | 48 runs, complete. **The primary dataset**: `RESULTS-3.md`, `RESULTS-APPENDIX-3.md` and `ARTICLE-SKELETON-3.md` are written from it |
-| `runs/` + `work/` | **laptop** — Apple MacBook Pro (Intel i9-9880H), macOS 14.1.1, brokers in the Docker Desktop linuxkit VM, 12 vCPU shared with the host OS | 51 runs; the dataset `RESULTS-2.md` and `RESULTS-APPENDIX-2.md` were written from, now the second testbed |
+| `runs-aws/` + `work-aws/` | **aws** — EC2 m6i.4xlarge, Ubuntu 24.04.5 (kernel 7.0.0-1014-aws), Intel Xeon Platinum 8375C, 16 vCPU, broker data on a separate 100 GiB gp3 volume | 48 runs, complete. **The primary dataset**: the paper reports these |
+| `runs/` + `work/` | **laptop** — Apple MacBook Pro (Intel i9-9880H), macOS 14.1.1, brokers in the Docker Desktop linuxkit VM, 12 vCPU shared with the host OS | 51 runs; the second testbed, used for the portability check |
 | `env/host.json` | laptop snapshot | hardware, OS, Docker, image digests |
 | `runs-aws/host.json` | aws snapshot | the same fields, so the two testbeds can be compared field by field |
 
@@ -56,15 +56,14 @@ default, and the harness writes 25–31 MiB of compressed CSV per run — a
 significant fraction of the 60 MiB of disk headroom the RabbitMQ arms are given.
 The first AWS attempt showed exactly that: the alarm latched on at 107 s and
 never cleared, and the producer shed 55% of its publishes against 12.5% in the
-corrected runs. The AWS runs therefore put the broker's data on a dedicated
+corrected runs. The AWS runs therefore put the broker's data on a separate
 volume, which restores the property the laptop had by accident: the 60 MiB
 headroom measures the queue, not the test harness. Verified directly — writing
 200 MiB into the output directory moves the broker's reported free space by
 zero bytes.
 
-## Paths in the documents
+## Paths
 
-The documents name the primary set explicitly as `artifact/runs-aws/<run>.timeline.csv`
-and `artifact/work-aws/<run>/`, so no rename is required and none has been done.
-`runs/` and `work/` remain the laptop set, which is what `RESULTS-2.md` refers
-to.
+The primary set is `runs-aws/` and `work-aws/`; `runs/` and `work/` are the
+laptop set. The analysis scripts default to the laptop set and take the EC2 one
+through `QLAB_RUNS` / `QLAB_WORK`, so neither directory is ever renamed.
