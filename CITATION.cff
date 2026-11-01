@@ -9,6 +9,7 @@ authors:
     affiliation: "Independent Researcher, 00-842 Warsaw, Poland"
     email: "v.pidvolotska@gmail.com"
 license: Apache-2.0
+doi: "10.5281/zenodo.23867134"
 keywords:
   - message queues
   - message brokers

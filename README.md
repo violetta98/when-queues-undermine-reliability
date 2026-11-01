@@ -1,5 +1,7 @@
 # When Queues Undermine Reliability — experiment artifact
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23867134.svg)](https://doi.org/10.5281/zenodo.23867134)
+
 Code, configurations and data behind *When Queues Undermine Reliability: An
 Experimental Study of Message Backlogs in RabbitMQ and Kafka* (under review).
 
@@ -345,7 +347,14 @@ redo the join rather than trust `postrun.py`.
 ## Licences and citation
 
 Code is Apache-2.0 (`LICENSE`). Data, in this repository and in the Zenodo
-dataset, is CC BY 4.0 (`LICENSE-DATA`). See `CITATION.cff`.
+dataset, is CC BY 4.0 (`LICENSE-DATA`).
+
+Two archives, two DOIs. This repository is
+[10.5281/zenodo.23867134](https://doi.org/10.5281/zenodo.23867134); the
+per-message records are
+[10.5281/zenodo.23866087](https://doi.org/10.5281/zenodo.23866087). Both resolve
+to the latest version. `CITATION.cff` carries the metadata GitHub and Zenodo
+read.
 
 Violetta Pidvolotska, Independent Researcher, 00-842 Warsaw, Poland
 — v.pidvolotska@gmail.com, ORCID 0009-0001-8490-9574.
