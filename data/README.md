@@ -17,7 +17,7 @@ The two `*-runs.csv` files are the raw material: one row per run, 42 columns,
 written by `analysis/analyze.py`. The four in `tables/` are what the paper
 prints, rebuilt by `analysis/paper_tables.py`. They are committed rather than
 generated on demand so that a reviewer can compare a number against the paper
-without downloading 2.5 GB first.
+without downloading 2.6 GB first.
 
 Tables 3 and 6 come from the per-run summaries alone, so they rebuild from this
 directory. Tables 4 and 5 need the per-message records.

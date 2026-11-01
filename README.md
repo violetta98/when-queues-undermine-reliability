@@ -12,15 +12,14 @@ on top — 48 runs. The same configurations were run earlier on a laptop, 51 run
 in total. Every one of the 27.9 million publish attempts ends in exactly one of
 ten accounted states.
 
-Everything a reviewer needs to re-derive a number in the paper is either in this
-repository or in the Zenodo dataset it points at.
+Every number in the paper can be re-derived from what is here plus the Zenodo
+dataset this points at.
 
 ## The experiments
 
-A producer publishes 1000 messages per second of 1 KiB each. Every message
-carries its creation time and a deadline 60 s later inside its own body, so
-neither broker knows about the deadline — only the consumer does, and only
-after delivery. The consumer runs 100 workers at 50 ms per message, so it can
+Every message carries its creation time and a deadline 60 s later inside its own
+body, so neither broker knows about the deadline — only the consumer does, and
+only after delivery. The consumer runs 100 workers at 50 ms per message, so it can
 drain 2000 messages/s, twice the arrival rate. The slowdown raises the handler
 to 250 ms, cutting capacity to 400/s, and the backlog then grows by 600
 messages every second. A second, healthy queue sits on the same broker, never
@@ -69,8 +68,8 @@ because they mark what the experiment does not cover.
 
 Every publish attempt ends in exactly one of ten states, and they sum to the
 number of attempts — that identity is the verification the artifact rests on.
-Two of those states carry the argument. **Useful loss** is a message the broker
-removed while it could still have met its deadline; **dead work** is a message
+Two of them do the work. **Useful loss** is a message the broker removed while
+it could still have met its deadline; **dead work** is a message
 processed after its deadline, so the effort was wasted. Alongside them: the
 on-time share, the publish-confirm latency of the neighbour queue, the time to
 the first disk alarm, the number of operator purges and the drain time.
@@ -79,46 +78,53 @@ the first disk alarm, the number of operator purges and the drain time.
 
 ## What the runs show
 
-The findings, with the numbers the tables in `data/tables/` carry. Shares are of
-publish attempts; medians over three runs on EC2.
+Numbers are medians over three EC2 runs, as shares of publish attempts. All of
+them are in `data/tables/`.
 
-**The two brokers fail in opposite ways.** Unbounded RabbitMQ (R1) raised a disk
-alarm 81 s into the slowdown and blocked publishing on the whole node, including
-the producer of an unrelated queue whose publish-confirm p99 went from 0.8 ms to
-9.8 s. Recovery needed manual purges. Unbounded Kafka (K1) left the neighbour
-alone and processed the entire backlog — but 64.28% of what it completed was
-already past its deadline, and no error was raised anywhere.
+Unbounded, the two brokers failed in opposite ways. RabbitMQ (R1) raised a disk
+alarm 81 s into the slowdown and blocked publishing on the whole node — including
+the producer of an unrelated queue, whose publish-confirm p99 went from 0.8 ms to
+9.8 s. Getting out of it took manual purges. Kafka (K1) never touched the
+neighbour and worked through the entire backlog, but 64.28% of what it finished
+was already past its deadline, and no error was raised in application code; the
+only signal was consumer lag.
 
-**A bound decides which work is lost, not whether.** Every bounded
-configuration lost something. The length limit (R2) destroyed 29.14% of
-messages that could still have met their deadline; the age bound (R4) 18.65%;
-refusing the producer (R3) turned the same loss into 29.15% of publishes
-refused, which the producer at least learned about.
+Every bound lost something; they differ in what, and in who hears about it. The
+length limit (R2) destroyed 29.14% of messages that could still have made their
+deadline. The age bound (R4) destroyed 18.65%. Refusal (R3, R5, R11) loses a
+comparable share — 29.15%, 27.25%, 29.19% of publishes — but the producer is
+told, and can retry or shed deliberately.
 
-**What matters is when a bound removes a message, and that follows the
-granularity of enforcement rather than what is bounded.** RabbitMQ's TTL removes
-at a fixed point in a message's life — spread below the 1 s resolution of the
-check. Kafka's retention bounds the same quantity but deletes whole segments, so
-removal lands anywhere in an 11 s window.
+When a bound fires depends on how finely it is applied, not on what it bounds.
+R5 bounds age with a TTL *and* caps volume, and its removal moment is spread by
+less than the 1 s resolution of our check. K6 bounds the same quantity, age, but
+Kafka deletes whole segments, so removal lands anywhere in an 11 s window. The
+TTL alone is not enough for this: R4 has the same TTL without a volume cap, a
+third of its removals come from purges instead, and its spread is 31 s.
 
-**Harm to the neighbour comes from unbounded volume, not from the absence of a
-bound.** R4 has a TTL configured and still hurt the neighbour, because an age
-bound does not cap volume: the queue reached 54,000 messages where the alarm
-fires at 46,000–50,800.
+R4 also spoils the obvious story about neighbours. It has a TTL configured and
+still hurt the queue beside it, because an age bound does not cap volume — it can
+hold λ·TTL = 54,000 messages, and the alarm fired at depths of 45,840–48,333. A
+neighbour suffers when volume is uncapped *and* the broker defends itself by
+blocking publishers node-wide. Kafka's backlog was entirely uncapped at 218,150
+records and its neighbour felt nothing.
 
-**The usual way of sizing a length limit is wrong, and so is the obvious
-correction.** `μd·D` = 24,000 discards messages with 36 of their 60 seconds
-unused. The correction the model implies, 59,750, removes 18.6% fewer messages
-but places completion exactly on the deadline: on-time delivery fell from 70.86%
-to 60.50%. The reserve both rules miss is set by the consumer's prefetch-to-worker
-ratio, not by the overflow policy.
+The usual way of sizing a length limit, `μd·D` = 24,000, met every deadline but
+threw away messages with 36 of their 60 seconds unused. The correction the model
+implies, 59,750, removes 18.6% fewer — and pushes the worst completion 0.26 s
+*past* the deadline, dropping on-time delivery from 70.86% to 60.50%. Measured by
+on-time delivery the common rule is the better of the two: wasteful, but safe.
 
-**Bounding age and volume together is what worked.** R5 — TTL, a length limit
-with producer refusal, and a deadline check in the consumer — lost 1.89% of
-useful messages against R2's 29.14%, with no dead work and an untouched
-neighbour, at the cost of 27.25% of publishes refused where the producer sees it.
+How much reserve a limit needs depends on the overflow policy. Under
+reject-publish one service time is enough — R11 at 23,700 stayed inside the
+deadline — while under drop-head the same subtraction is not, and zero slack
+needs about two. The drop-head reserve is accounted for by the consumer's
+prefetch-to-worker ratio; about 0.16 s under reject-publish is not.
 
-Section 5 of the paper develops these; `data/tables/` holds them as CSV.
+What worked was bounding age and volume together. R5 combines a TTL, a length
+limit with producer refusal, and a deadline check in the consumer: 1.89% useful
+loss against R2's 29.14%, no dead work, neighbour untouched, and 27.25% of
+publishes refused where the producer can see them.
 
 ## What is where
 
@@ -146,14 +152,14 @@ in the Zenodo dataset (see *Getting the data*) and unpack into `runs-aws/` and
 
 ## Getting the data
 
-Summary data is in `data/` and needs nothing. Tables 4 and 5 and all figures
-need the per-message records, archived at Zenodo under
+Tables 3 and 6 rebuild from `data/` alone. Tables 4 and 5 and all figures need
+the per-message records, archived at Zenodo under
 [10.5281/zenodo.23866087](https://doi.org/10.5281/zenodo.23866087) (CC BY 4.0).
 
 The record holds four archives. `ec2-runs.zip` (1.2 GB) is enough for every
 table and figure except the laptop rows of Table 5, which need
 `laptop-runs.zip` (1.3 GB). The two `work` archives are a few megabytes each
-and carry the broker logs, the one-second metric samples and the orchestrator
+and hold the broker logs, the one-second metric samples and the orchestrator
 events — the only source for the alarm episode counts, the queue depth at each
 operator purge and the Kafka offsets behind Figure 5.
 
@@ -246,7 +252,7 @@ franz-go v1.22.2 (kadm v1.19.0), the Kafka producer running a 5 ms linger.
 The laptop ran first; the EC2 set was collected afterwards and is the one the
 paper reports. The broker's data **must** sit on a filesystem the harness does
 not write to: the harness produces 24–34 MiB of compressed CSV per run, and the
-RabbitMQ arms are given only 60 MiB of disk headroom. The first EC2 attempt put
+RabbitMQ arms are given 60 MiB of disk headroom, 120 MiB for R9 and R12. The first EC2 attempt put
 both on the same volume, the alarm latched on at 107 s and never cleared, and
 the producer shed 55% of its publishes. Those runs are not in the dataset.
 
@@ -291,13 +297,15 @@ incident applied.
 
 ## Known limitations
 
-The required slack beyond the bound-implied wait is explained by the consumer's
-prefetch-to-worker ratio, and that ratio is 200/100 in every run on both
+The required slack beyond the bound-implied wait is accounted for under
+drop-head by the consumer's prefetch-to-worker ratio, with about 0.16 s under
+reject-publish still unexplained, and that ratio is 200/100 in every run on both
 testbeds — it was never varied, so the agreement between the testbeds supports
 the mechanism rather than the generality of the number. No run was performed at
 the limit the measurement points to, nor anywhere between 24,000 and 59,750.
 The two brokers were not under equal pressure: RabbitMQ's disk threshold was
-squeezed to 60 MiB of headroom while Kafka's volume was not bounded at all and
+squeezed to 60 MiB of headroom (120 MiB for R9 and R12) while Kafka's volume
+was not bounded at all and
 its backlog stayed inside the page cache, so the Kafka half of the comparison is
 only tested up to that boundary. Broker, generator and neighbour share one
 machine in every run. The slowdown was varied at two points, the duration at
@@ -329,7 +337,7 @@ Figure 5).
 
 Left out by default: the four per-process CSVs each run writes (producer,
 consumer and the two neighbour sides), 2.3 GB. They are the pre-join form of
-`<run_id>.messages.csv.gz` — every column they carry appears in the published
+`<run_id>.messages.csv.gz` — every column they have appears in the published
 file, renamed — so they would double the dataset and add nothing a reviewer
 needs to check a number. `--with-prejoin` includes them, for anyone who wants to
 redo the join rather than trust `postrun.py`.

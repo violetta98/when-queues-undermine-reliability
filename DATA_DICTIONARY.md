@@ -57,8 +57,8 @@ loss of work that was still worth doing, as distinct from loss of work that was
 already too late.
 
 **Strict useful loss** (`lost_useful_strict`) is the same count with removals in
-the final second of a message's life excluded. The two differ materially for
-exactly one configuration, R12, whose limit removes messages with 0.25 s of life
+the final second of a message's life excluded. R1 differs by 0.30 percentage points, R2 and R4
+not at all; the one configuration where the choice matters is R12, whose limit removes messages with 0.25 s of life
 left: its useful loss is 23.73% under the normal definition and zero under the
 strict one. The paper reports the normal definition, which is the less
 favourable one for bounded configurations.
