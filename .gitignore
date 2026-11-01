@@ -1,0 +1,22 @@
+# Per-message records and per-process working files: 2.3 GB, distributed
+# through Zenodo instead. See README, "Getting the data".
+runs/
+runs-aws/
+work/
+work-aws/
+dataset.zip
+
+# Generated
+analysis/out/
+figures-aws/
+__pycache__/
+*.pyc
+
+# Local
+.DS_Store
+*.pem
+.env
+
+# Compiled harness binaries; build with harness/build.sh
+harness/qlab
+harness/qlab-linux-amd64

@@ -1,0 +1,54 @@
+{
+  "sw_vers": {
+    "cmd": "sw_vers",
+    "stdout": "ProductName:\t\tmacOS\nProductVersion:\t\t14.1.1\nBuildVersion:\t\t23B81"
+  },
+  "uname": {
+    "cmd": "uname -a",
+    "stdout": "Darwin host 23.1.0 Darwin Kernel Version 23.1.0: Mon Oct  9 21:27:27 PDT 2023; root:xnu-10002.41.9~6/RELEASE_X86_64 x86_64"
+  },
+  "cpu_brand": {
+    "cmd": "sysctl -n machdep.cpu.brand_string",
+    "stdout": "Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz"
+  },
+  "ncpu": {
+    "cmd": "sysctl -n hw.ncpu",
+    "stdout": "16"
+  },
+  "physicalcpu": {
+    "cmd": "sysctl -n hw.physicalcpu",
+    "stdout": "8"
+  },
+  "memsize": {
+    "cmd": "sysctl -n hw.memsize",
+    "stdout": "17179869184"
+  },
+  "df_root": {
+    "cmd": "df -k /",
+    "stdout": "Filesystem     1024-blocks      Used Available Capacity iused      ifree %iused  Mounted on\n/dev/disk1s1s1   976797816  14163828 513449660     3%  390144 4292878420    0%   /"
+  },
+  "docker_version": {
+    "cmd": "docker version --format '{{.Server.Version}} api={{.Server.APIVersion}}'",
+    "stdout": "24.0.6 api=1.43"
+  },
+  "docker_info": {
+    "cmd": "docker info --format '{{.ServerVersion}}|{{.NCPU}}|{{.MemTotal}}|{{.Driver}}|{{.CgroupVersion}}|{{.KernelVersion}}|{{.OperatingSystem}}'",
+    "stdout": "24.0.6|12|8332636160|overlay2|2|6.4.16-linuxkit|Docker Desktop"
+  },
+  "docker_desktop": {
+    "cmd": "defaults read com.docker.docker 2>/dev/null | head -40",
+    "stdout": "{\n    SUAutomaticallyUpdate = 1;\n    SUEnableAutomaticChecks = 1;\n    SUUpdateRelaunchingMarker = 1;\n}"
+  },
+  "go_version": {
+    "cmd": "go version",
+    "stdout": "go version go1.21.5 darwin/amd64"
+  },
+  "python_version": {
+    "cmd": "python3 --version",
+    "stdout": "Python 3.11.6"
+  },
+  "disk_model": {
+    "cmd": "system_profiler SPNVMeDataType 2>/dev/null | head -25",
+    "stdout": "NVMExpress:\n\n    Apple SSD Controller:\n\n        APPLE SSD AP1024N:\n\n          Capacity: 1 TB (1,000,555,581,440 bytes)\n          TRIM Support: Yes\n          Model: APPLE SSD AP1024N\n          Revision: 1306\n          Serial Number: <redacted>\n          Link Width: x4\n          Link Speed: 8.0 GT/s\n          Detachable Drive: No\n          BSD Name: disk0\n          Partition Map Type: GPT (GUID Partition Table)\n          Removable Media: No\n          S.M.A.R.T. status: Verified\n          Volumes:\n            EFI:\n              Capacity: 314.6 MB (314,572,800 bytes)\n              File System: MS-DOS FAT32\n              BSD Name: disk0s1\n              Content: EFI\n              Volume UUID: <redacted>"
+  }
+}

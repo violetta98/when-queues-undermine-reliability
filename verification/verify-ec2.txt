@@ -1,0 +1,51 @@
+run                                              rows  removed checks
+K-C1-long-retention_f5_s360_A_r1               660000        0 ok  (1 s without a broker sample)
+K-C1-long-retention_f5_s360_A_r2               660000        0 ok  (1 s without a broker sample)
+K-C1-long-retention_f5_s360_A_r3               660000        0 ok  (1 s without a broker sample)
+K-C2-short-retention_f5_s360_A_r1              660000    93583 ok  (1 s without a broker sample)
+K-C2-short-retention_f5_s360_A_r2              660000    93601 ok  (1 s without a broker sample)
+K-C2-short-retention_f5_s360_A_r3              660000    93624 ok  (1 s without a broker sample)
+K-C4-consumer-deadline_f5_s360_A_r1            660000        0 ok  (1 s without a broker sample)
+K-C4-consumer-deadline_f5_s360_A_r2            660000        0 ok  (1 s without a broker sample)
+K-C4-consumer-deadline_f5_s360_A_r3            660000        0 ok  (1 s without a broker sample)
+K-C6-retention-below-D_f5_s360_A_r1            660000   182592 ok  (1 s without a broker sample)
+K-C6-retention-below-D_f5_s360_A_r2            660000   182588 ok  (1 s without a broker sample)
+K-C6-retention-below-D_f5_s360_A_r3            660000   182588 ok  (1 s without a broker sample)
+R-C1-unbounded_f10_s360_A_r1                   660000   142376 ok
+R-C1-unbounded_f10_s360_A_r2                   660000   153221 ok
+R-C1-unbounded_f10_s360_A_r3                   660000   145061 ok
+R-C1-unbounded_f5_s360_A_r1                    660000    89318 ok
+R-C1-unbounded_f5_s360_A_r2                    660000    87737 ok
+R-C1-unbounded_f5_s360_A_r3                    660000    91425 ok
+R-C1-unbounded_f5_s90_B_r1                     240000        0 ok
+R-C1-unbounded_f5_s90_B_r2                     240000        0 ok
+R-C1-unbounded_f5_s90_B_r3                     240000        0 ok
+R-C11-reject-correct_f5_s360_A_r1              660000        0 ok
+R-C11-reject-correct_f5_s360_A_r2              660000        0 ok
+R-C11-reject-correct_f5_s360_A_r3              660000        0 ok
+R-C12-maxlen-correct-wide_f5_s360_A_r1         660000   156607 ok
+R-C12-maxlen-correct-wide_f5_s360_A_r2         660000   156594 ok
+R-C12-maxlen-correct-wide_f5_s360_A_r3         660000   156582 ok
+R-C2-maxlen-drophead_f5_s360_A_r1              660000   192317 ok
+R-C2-maxlen-drophead_f5_s360_A_r2              660000   192333 ok
+R-C2-maxlen-drophead_f5_s360_A_r3              660000   192326 ok
+R-C2-maxlen-drophead_f5_s90_B_r1               240000    29980 ok
+R-C2-maxlen-drophead_f5_s90_B_r2               240000    29980 ok
+R-C2-maxlen-drophead_f5_s90_B_r3               240000    29977 ok
+R-C3-reject-publish_f5_s360_A_r1               660000        0 ok
+R-C3-reject-publish_f5_s360_A_r2               660000        0 ok
+R-C3-reject-publish_f5_s360_A_r3               660000        0 ok
+R-C3-reject-publish_f5_s90_B_r1                240000        0 ok
+R-C3-reject-publish_f5_s90_B_r2                240000        0 ok
+R-C3-reject-publish_f5_s90_B_r3                240000        0 ok
+R-C4-ttl_f5_s360_A_r1                          660000   123122 ok
+R-C4-ttl_f5_s360_A_r2                          660000   148554 ok
+R-C4-ttl_f5_s360_A_r3                          660000   122684 ok
+R-C5-combined_f5_s360_A_r1                     660000    12496 ok
+R-C5-combined_f5_s360_A_r2                     660000    12481 ok
+R-C5-combined_f5_s360_A_r3                     660000    12500 ok
+R-C9-wide-headroom_f5_s360_A_r1                660000    93401 ok
+R-C9-wide-headroom_f5_s360_A_r2                660000    94255 ok
+R-C9-wide-headroom_f5_s360_A_r3                660000    95094 ok
+
+48 run(s) checked, 0 with problems

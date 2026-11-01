@@ -1,0 +1,39 @@
+{
+  "machine": "Apple MacBook Pro (Intel)",
+  "cpu": "Intel(R) Core(TM) i9-9880H CPU @ 2.30GHz",
+  "cpu_logical": 16,
+  "cpu_physical": 8,
+  "ram_bytes": 17179869184,
+  "os": "ProductName: macOS ProductVersion: 14.1.1 BuildVersion: 23B81",
+  "kernel": "Darwin host 23.1.0 Darwin Kernel Version 23.1.0: Mon Oct  9 21:27:27 PDT 2023; root:xnu-10002.41.9~6/RELEASE_X86_64 x86_64",
+  "python": "Python 3.11.6",
+  "go": "go version go1.26.0 darwin/amd64 (the version the harness binaries were built with; see harness_build in any run manifest)",
+  "docker": {
+    "server_version": "24.0.6",
+    "vm_cpus": 12,
+    "vm_memory_bytes": 8332636160,
+    "storage_driver": "overlay2",
+    "cgroup_version": "2",
+    "vm_kernel": "6.4.16-linuxkit",
+    "vm_os": "Docker Desktop",
+    "note": "Docker Engine 24.0.6 in the Docker Desktop linuxkit VM. The Docker Desktop application version was not captured; only the engine version and VM kernel were."
+  },
+  "images": {
+    "rabbitmq:4-management": {
+      "digest": "rabbitmq@sha256:54cb013d76cd1fd6c0a0708f34062ad61c452bb6f016b434c6c33f1a765d2b58",
+      "version": "4.3.6",
+      "created": "2026-10-17T01:31:28.564354503Z"
+    },
+    "apache/kafka:latest": {
+      "digest": "apache/kafka@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837",
+      "version": "4.3.1",
+      "created": "2026-06-17T19:23:59.184853077Z"
+    },
+    "alpine:3.20": {
+      "digest": "alpine@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc",
+      "version": "3.20.10",
+      "created": "2026-04-16T23:53:26.803599608Z"
+    }
+  },
+  "disk": "APPLE SSD AP1024N, 1 TB NVMe, 490 GiB free at capture time"
+}

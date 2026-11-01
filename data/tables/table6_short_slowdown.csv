@@ -1,0 +1,4 @@
+arm,refused_pct,shed_pct,useful_loss_pct,neighbour_loss_min,neighbour_loss_max
+R1,0.00,3.45,0.00,1486,1496
+R2,0.00,0.00,12.49,0,0
+R3,12.49,0.00,0.00,0,0

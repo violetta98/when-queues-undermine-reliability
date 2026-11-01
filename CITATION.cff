@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+title: "When Queues Undermine Reliability: experiment artifact"
+message: "If you use this artifact, please cite the paper."
+type: software
+authors:
+  - family-names: Pidvolotska
+    given-names: Violetta
+    orcid: "https://orcid.org/0009-0001-8490-9574"
+    affiliation: "Independent Researcher, 00-842 Warsaw, Poland"
+    email: "v.pidvolotska@gmail.com"
+license: Apache-2.0
+keywords:
+  - message queues
+  - message brokers
+  - RabbitMQ
+  - Apache Kafka
+  - overload control
+  - load shedding
+  - deadlines
+  - useful loss
+  - reliability
+  - cloud services
+preferred-citation:
+  type: article
+  title: "When Queues Undermine Reliability: An Experimental Study of Message
+    Backlogs in RabbitMQ and Kafka"
+  authors:
+    - family-names: Pidvolotska
+      given-names: Violetta
+      orcid: "https://orcid.org/0009-0001-8490-9574"
+      affiliation: "Independent Researcher, 00-842 Warsaw, Poland"
+      email: "v.pidvolotska@gmail.com"
+  journal: "Future Internet"
+  year: 2026
+  notes: "Submitted."

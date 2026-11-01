@@ -1,0 +1,11 @@
+built_at_utc=2026-10-20T21:36:44Z
+go_version=go version go1.26.0 darwin/amd64
+binary_sha256=d7d880e463b3f849ca233a79367fba71f5809c488bbfac4176bdf431198bf49c
+binary_bytes=14670824
+modules:
+  github.com/klauspost/compress v1.20.3
+  github.com/pierrec/lz4/v4 v4.1.33
+  github.com/rabbitmq/amqp091-go v1.16.0
+  github.com/twmb/franz-go v1.22.2
+  github.com/twmb/franz-go/pkg/kadm v1.19.0
+  github.com/twmb/franz-go/pkg/kmsg v1.15.0

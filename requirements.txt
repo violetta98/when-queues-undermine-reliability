@@ -1,0 +1,2 @@
+# Analysis and figures. The harness itself is Go; see harness/go.mod.
+matplotlib>=3.8
