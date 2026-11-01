@@ -77,6 +77,49 @@ the first disk alarm, the number of operator purges and the drain time.
 
 `DATA_DICTIONARY.md` defines every state and every column, with the units.
 
+## What the runs show
+
+The findings, with the numbers the tables in `data/tables/` carry. Shares are of
+publish attempts; medians over three runs on EC2.
+
+**The two brokers fail in opposite ways.** Unbounded RabbitMQ (R1) raised a disk
+alarm 81 s into the slowdown and blocked publishing on the whole node, including
+the producer of an unrelated queue whose publish-confirm p99 went from 0.8 ms to
+9.8 s. Recovery needed manual purges. Unbounded Kafka (K1) left the neighbour
+alone and processed the entire backlog — but 64.28% of what it completed was
+already past its deadline, and no error was raised anywhere.
+
+**A bound decides which work is lost, not whether.** Every bounded
+configuration lost something. The length limit (R2) destroyed 29.14% of
+messages that could still have met their deadline; the age bound (R4) 18.65%;
+refusing the producer (R3) turned the same loss into 29.15% of publishes
+refused, which the producer at least learned about.
+
+**What matters is when a bound removes a message, and that follows the
+granularity of enforcement rather than what is bounded.** RabbitMQ's TTL removes
+at a fixed point in a message's life — spread below the 1 s resolution of the
+check. Kafka's retention bounds the same quantity but deletes whole segments, so
+removal lands anywhere in an 11 s window.
+
+**Harm to the neighbour comes from unbounded volume, not from the absence of a
+bound.** R4 has a TTL configured and still hurt the neighbour, because an age
+bound does not cap volume: the queue reached 54,000 messages where the alarm
+fires at 46,000–50,800.
+
+**The usual way of sizing a length limit is wrong, and so is the obvious
+correction.** `μd·D` = 24,000 discards messages with 36 of their 60 seconds
+unused. The correction the model implies, 59,750, removes 18.6% fewer messages
+but places completion exactly on the deadline: on-time delivery fell from 70.86%
+to 60.50%. The reserve both rules miss is set by the consumer's prefetch-to-worker
+ratio, not by the overflow policy.
+
+**Bounding age and volume together is what worked.** R5 — TTL, a length limit
+with producer refusal, and a deadline check in the consumer — lost 1.89% of
+useful messages against R2's 29.14%, with no dead work and an untouched
+neighbour, at the cost of 27.25% of publishes refused where the producer sees it.
+
+Section 5 of the paper develops these; `data/tables/` holds them as CSV.
+
 ## What is where
 
 ```
