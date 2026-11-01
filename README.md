@@ -15,6 +15,68 @@ ten accounted states.
 Everything a reviewer needs to re-derive a number in the paper is either in this
 repository or in the Zenodo dataset it points at.
 
+## The experiments
+
+A producer publishes 1000 messages per second of 1 KiB each. Every message
+carries its creation time and a deadline 60 s later inside its own body, so
+neither broker knows about the deadline — only the consumer does, and only
+after delivery. The consumer runs 100 workers at 50 ms per message, so it can
+drain 2000 messages/s, twice the arrival rate. The slowdown raises the handler
+to 250 ms, cutting capacity to 400/s, and the backlog then grows by 600
+messages every second. A second, healthy queue sits on the same broker, never
+bounded and never slowed, to show what the backlog does to a neighbour.
+
+| Scenario | Phases | Runs |
+|---|---|---|
+| Long slowdown | warm-up 60 s, slow 60–420 s, publishing stops at 660 s, run ends at 720 s | 12 configurations × 3 |
+| Short peak | warm-up 60 s, slow 60–150 s, publishing stops at 240 s, ends at 300 s | R1, R2, R3 × 3 |
+| Tenfold slowdown | same phases as the long slowdown, handler at 500 ms | R1 × 3 |
+
+The short peak is 90 s, ten per cent below `T* = D / (1 − μd/λ)` = 100 s — the
+duration at which waiting first reaches the deadline. Below it nothing can
+expire, so anything a bound removes there was still useful.
+
+### The twelve configurations
+
+| ID | Broker | What is bounded | Directory |
+|---|---|---|---|
+| R1 | RabbitMQ | nothing | `R-C1-unbounded` |
+| R2 | RabbitMQ | `x-max-length` = 24,000, drop-head | `R-C2-maxlen-drophead` |
+| R3 | RabbitMQ | `x-max-length` = 24,000, reject-publish | `R-C3-reject-publish` |
+| R4 | RabbitMQ | `x-message-ttl` = 54 s | `R-C4-ttl` |
+| R5 | RabbitMQ | TTL 54 s + `x-max-length` 24,000 with reject-publish + a deadline check in the consumer | `R-C5-combined` |
+| R9 | RabbitMQ | nothing, twice the disk headroom | `R-C9-wide-headroom` |
+| R11 | RabbitMQ | `x-max-length` = 23,700, reject-publish | `R-C11-reject-correct` |
+| R12 | RabbitMQ | `x-max-length` = 59,750, drop-head | `R-C12-maxlen-correct-wide` |
+| K1 | Kafka | retention 7 days | `K-C1-long-retention` |
+| K2 | Kafka | `retention.ms` = 120 s, longer than the deadline | `K-C2-short-retention` |
+| K4 | Kafka | retention 7 days, consumer discards expired messages | `K-C4-consumer-deadline` |
+| K6 | Kafka | `retention.ms` = 30 s, shorter than the deadline | `K-C6-retention-below-D` |
+
+24,000 is the length limit the usual rule gives, μd·D. 23,700 and 59,750 are
+what the model implies for the two overflow policies; R11 and R12 exist to
+test whether those hold. The laptop set has two more, `K-C3-lag-backpressure`
+and `K-C7-retention-bytes`, which were run but are not discussed in the paper.
+R6, R7, R8, R10 and K5 were specified and never run, and no data for them
+exists anywhere: `R-C6-quorum-unbounded` (a quorum queue), `R-C7-maxlen-from-mu`
+(a limit sized from μ rather than μd), `R-C8-more-consumers` (the "add more
+workers" remedy the motivating incident applied), `R-C10-maxlen-correct`
+(superseded by R12, the same limit with twice the disk headroom) and
+`K-C5-combined`. `orchestrator/configs.py` keeps them with a note on each,
+because they mark what the experiment does not cover.
+
+### What is measured
+
+Every publish attempt ends in exactly one of ten states, and they sum to the
+number of attempts — that identity is the verification the artifact rests on.
+Two of those states carry the argument. **Useful loss** is a message the broker
+removed while it could still have met its deadline; **dead work** is a message
+processed after its deadline, so the effort was wasted. Alongside them: the
+on-time share, the publish-confirm latency of the neighbour queue, the time to
+the first disk alarm, the number of operator purges and the drain time.
+
+`DATA_DICTIONARY.md` defines every state and every column, with the units.
+
 ## What is where
 
 ```
@@ -42,22 +104,32 @@ in the Zenodo dataset (see *Getting the data*) and unpack into `runs-aws/` and
 ## Getting the data
 
 Summary data is in `data/` and needs nothing. Tables 4 and 5 and all figures
-need the per-message records:
+need the per-message records, archived at Zenodo under
+[10.5281/zenodo.23866087](https://doi.org/10.5281/zenodo.23866087) (CC BY 4.0).
+
+The record holds four archives. `ec2-runs.zip` (1.2 GB) is enough for every
+table and figure except the laptop rows of Table 5, which need
+`laptop-runs.zip` (1.3 GB). The two `work` archives are a few megabytes each
+and carry the broker logs, the one-second metric samples and the orchestrator
+events — the only source for the alarm episode counts, the queue depth at each
+operator purge and the Kafka offsets behind Figure 5.
 
 ```
 # from the repository root
-curl -L -o dataset.zip <ZENODO DATASET URL>
-unzip dataset.zip -d dataset
-cd dataset && sha256sum -c SHA256SUMS && cd ..
-python3 tools/unpack_dataset.py dataset    # flattens into runs-aws/ and runs/
+mkdir -p dataset && cd dataset
+base=https://zenodo.org/records/23866088/files
+for f in ec2-runs.zip ec2-work.zip laptop-runs.zip laptop-work.zip SHA256SUMS; do
+  curl -L -O "$base/$f?download=1"
+done
+unzip -q '*.zip'
+sha256sum -c SHA256SUMS            # 1713 files
+cd ..
+python3 tools/unpack_dataset.py dataset
 ```
 
-The dataset is published as `runs/<testbed>/<config>/<run_id>/`, which is
-readable by a human browsing Zenodo. The analysis scripts want the flat layout
-the harness writes, so `unpack_dataset.py` hardlinks (or copies) the files into
-`runs-aws/` and `runs/`. It also restores `work-aws/` and `work/`, the
-per-process inputs: `verify.py` cross-checks its event counts against them, so
-without them that part of the verification is skipped.
+`unpack_dataset.py` hardlinks the files into `runs-aws/`, `runs/`, `work-aws/`
+and `work/`, the flat layout the analysis scripts read, so nothing is stored
+twice. Pass `--copy` if the dataset sits on another filesystem.
 
 Each run is two files. `<run_id>.timeline.csv` has a commented provenance
 header and one row per second. `<run_id>.messages.csv.gz` has one row per
@@ -106,49 +178,27 @@ queue into the denominator and moved the plateaus from 22.4/22.3/20.9% down to
 17.5/17.4/16.5%. The filter is in place and commented; if you regenerate the
 figure and see the lower numbers, you are running the old code.
 
-## Configuration names
-
-The paper uses short labels. The directories carry the names the configurations
-were given as the experiment grew, which is why the numbering has gaps.
-
-| Paper | Repository | Runs |
-|---|---|---|
-| R1 | `R-C1-unbounded` | EC2 and laptop |
-| R2 | `R-C2-maxlen-drophead` | EC2 and laptop |
-| R3 | `R-C3-reject-publish` | EC2 and laptop |
-| R4 | `R-C4-ttl` | EC2 and laptop |
-| R5 | `R-C5-combined` | EC2 and laptop |
-| R9 | `R-C9-wide-headroom` | EC2 and laptop |
-| R11 | `R-C11-reject-correct` | EC2 and laptop |
-| R12 | `R-C12-maxlen-correct-wide` | EC2 and laptop |
-| K1 | `K-C1-long-retention` | EC2 and laptop |
-| K2 | `K-C2-short-retention` | EC2 and laptop |
-| K4 | `K-C4-consumer-deadline` | EC2 and laptop |
-| K6 | `K-C6-retention-below-D` | EC2 and laptop |
-| K3 | `K-C3-lag-backpressure` | laptop only — run, not discussed in the paper |
-| K7 | `K-C7-retention-bytes` | laptop only — run, not discussed in the paper |
-| R6 | `R-C6-quorum-unbounded` | planned, never run |
-| R7 | `R-C7-maxlen-from-mu` | planned, never run |
-| R8 | `R-C8-more-consumers` | planned, never run |
-| R10 | `R-C10-maxlen-correct` | planned, never run — superseded by R12, same limit with twice the disk headroom |
-| K5 | `K-C5-combined` | planned, never run |
-
-The five planned-but-never-run configurations are left in `orchestrator/configs.py`
-with a comment on each, because they say what the experiment did not cover.
-R8 is the one worth noting: it is the "add more workers" remedy, which the
-motivating incident applied and which this experiment therefore does not test.
-
 ## The two testbeds
 
-**EC2** (primary): m6i.4xlarge, Intel Xeon Platinum 8375C at 2.90 GHz, 16 vCPU,
-61.8 GiB, Ubuntu 24.04.5, kernel 7.0.0-1014-aws, Docker 29.1.3, overlayfs,
-cgroups v2. Broker data on a separate 100 GiB gp3 volume (ext4) mounted at
-`/var/lib/docker`. RabbitMQ 4.3.6 on Erlang/OTP 27.3.4.19 with 4 CPU and 1 GiB;
-Kafka 4.3.1 in KRaft mode with 4 CPU, 2 GiB and a 512 MiB heap. Images pinned by
-digest in every run manifest.
+**EC2** (primary, `runs-aws/` + `work-aws/`). An m6i.4xlarge instance: Intel
+Xeon Platinum 8375C at 2.90 GHz, 16 vCPU, 61.8 GiB, Ubuntu 24.04.5 LTS, kernel
+7.0.0-1014-aws, Docker 29.1.3, overlayfs, cgroups v2. Broker data on a separate
+100 GiB gp3 volume (ext4) mounted at `/var/lib/docker`; provisioned IOPS and
+throughput were not recorded, and the gp3 defaults are 3000 IOPS and 125 MiB/s.
+Writing 200 MiB into the harness output directory did not change the free space
+the broker saw, which is the property the 60 MiB alarm headroom depends on.
 
-**Laptop** (second testbed): Intel i9-9880H, macOS 14.1.1, brokers in the Docker
-Desktop VM, 12 vCPU shared with the host OS.
+**Laptop** (second testbed, `runs/` + `work/`). An Intel Core i9-9880H machine,
+16 GiB RAM, NVMe SSD, macOS 14.1.1, with the brokers inside Docker Desktop's
+Linux VM: Docker Engine 24.0.6, 12 vCPU and 7.8 GiB given to the VM, shared with
+the host OS, no CPU pinning.
+
+On both testbeds the brokers, the load generator and the neighbour queue share
+one machine. Brokers: RabbitMQ 4.3.6 on Erlang/OTP 27.3.4.19 with 4 CPUs and
+1 GiB; Kafka 4.3.1 in KRaft mode with 4 CPUs, 2 GiB, a 512 MiB heap, six
+partitions, replication factor 1 and `acks=all`. Images pinned by digest in
+every run manifest. The harness is Go 1.26.0 with amqp091-go v1.16.0 and
+franz-go v1.22.2 (kadm v1.19.0), the Kafka producer running a 5 ms linger.
 
 The laptop ran first; the EC2 set was collected afterwards and is the one the
 paper reports. The broker's data **must** sit on a filesystem the harness does

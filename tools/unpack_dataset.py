@@ -4,7 +4,7 @@
     python3 tools/unpack_dataset.py dataset            # hardlink, default
     python3 tools/unpack_dataset.py dataset --copy     # across filesystems
 
-Zenodo gets runs/<testbed>/<config>/<run_id>/..., which is what you want when
+Zenodo gets <testbed>/runs/<config>/<run_id>/..., which is what you want when
 browsing the record in a web page. The harness writes, and every script here
 reads, a flat runs-aws/<run_id>.timeline.csv. This bridges the two without
 duplicating 2.3 GB: hardlinks cost nothing as long as the dataset and the
@@ -31,14 +31,13 @@ def main():
                     help="copy instead of hardlink")
     args = ap.parse_args()
 
-    src_runs = args.dataset / "runs"
-    if not src_runs.is_dir():
-        sys.exit(f"{src_runs} not found - unzip the dataset first")
+    if not (args.dataset / "ec2").is_dir() and not (args.dataset / "laptop").is_dir():
+        sys.exit(f"no ec2/ or laptop/ under {args.dataset} - unzip the dataset first")
 
     place = shutil.copy2 if args.copy else os.link
     n = skipped = 0
     for testbed, flat_name in TESTBED_DIR.items():
-        src = src_runs / testbed
+        src = args.dataset / testbed / "runs"
         if not src.is_dir():
             continue
         flat = ROOT / flat_name
@@ -58,7 +57,7 @@ def main():
         print(f"{testbed}: {flat_name}/ ready")
 
     for testbed, work_name in WORK_DIR.items():
-        src = args.dataset / work_name
+        src = args.dataset / testbed / "work"
         if src.is_dir() and not (ROOT / work_name).exists():
             shutil.copytree(src, ROOT / work_name)
             print(f"{testbed}: {work_name}/ restored")
