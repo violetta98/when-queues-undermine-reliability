@@ -14,8 +14,9 @@ on top — 48 runs. The same configurations were run earlier on a laptop, 51 run
 in total. Every one of the 27.9 million publish attempts ends in exactly one of
 ten accounted states.
 
-Every number in the paper can be re-derived from what is here plus the Zenodo
-dataset this points at.
+Every table and figure in the paper can be rebuilt from what is here plus the
+Zenodo dataset this points at. Some figures quoted in the running text come from
+the per-run working files, which are in the dataset too.
 
 ## The experiments
 

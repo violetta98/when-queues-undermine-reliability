@@ -43,8 +43,8 @@ ARM_ORDER = ["R-C1-unbounded", "R-C2-maxlen-drophead", "R-C3-reject-publish",
              "R-C11-reject-correct", "R-C12-maxlen-correct-wide"]
 SHORT = {
     "R-C1-unbounded": "R1 unbounded",
-    "R-C2-maxlen-drophead": "R2 L=24k drop-head",
-    "R-C3-reject-publish": "R3 L=24k reject",
+    "R-C2-maxlen-drophead": "R2 L=24,000 drop-head",
+    "R-C3-reject-publish": "R3 L=24,000 reject",
     "R-C4-ttl": "R4 TTL=0.9D",
     "R-C5-combined": "R5 TTL+reject+check",
     "K-C1-long-retention": "K1 retention 7 d",
@@ -54,8 +54,8 @@ SHORT = {
     "K-C6-retention-below-D": "K6 retention 30 s",
     "R-C9-wide-headroom": "R9 unbounded, 2x headroom",
     "K-C7-retention-bytes": "K7 byte bound (retention.bytes)",
-    "R-C11-reject-correct": "R11 L=23 700 reject",
-    "R-C12-maxlen-correct-wide": "R12 L=59 750 drop-head",
+    "R-C11-reject-correct": "R11 L=23,700 reject",
+    "R-C12-maxlen-correct-wide": "R12 L=59,750 drop-head",
 }
 # Colour-blind safe, distinguishable in greyscale print.
 PALETTE = {"useful": "#4878a8", "dead": "#e8a33d", "loss_useful": "#b5422e",
@@ -110,8 +110,8 @@ def read_events(run_id):
 def fig_backlog(summaries):
     """Depth over time for the RabbitMQ arms, with alarms and purges marked."""
     picks = [("R-C1-unbounded", "unbounded"),
-             ("R-C2-maxlen-drophead", "max-length 24 000, drop-head"),
-             ("R-C12-maxlen-correct-wide", "max-length 59 750, drop-head"),
+             ("R-C2-maxlen-drophead", "max-length 24,000, drop-head"),
+             ("R-C12-maxlen-correct-wide", "max-length 59,750, drop-head"),
              ("R-C4-ttl", "TTL = 0.9 D")]
     fig, ax = plt.subplots(figsize=(7.2, 3.6))
     plotted = 0
@@ -247,7 +247,7 @@ def fig_drain(summaries):
     ax.scatter(xs, ys, s=22, color="#4878a8", alpha=0.8)
     hi = max(max(xs), max(ys)) * 1.08
     ax.plot([0, hi], [0, hi], linestyle="--", color="#888888", linewidth=1)
-    ax.set_xlabel("model prediction B / (mu - lambda)  (s)")
+    ax.set_xlabel("model prediction B/(\u03bc \u2212 \u03bb)  (s)")
     ax.set_ylabel("measured drain time (s)")
     ax.set_title("Drain time: model against measurement", fontsize=9)
     fig.tight_layout()
@@ -304,9 +304,9 @@ def fig_slack(summaries):
     # R2 is deliberately absent: its worst slack is +35.49 s, two orders of
     # magnitude outside the region that decides the other three, and including
     # it would compress exactly the detail the figure exists to show.
-    picks = [("R-C3-reject-publish", "R3  L=24 000 reject"),
-             ("R-C11-reject-correct", "R11 L=23 700 reject"),
-             ("R-C12-maxlen-correct-wide", "R12 L=59 750 drop-head")]
+    picks = [("R-C3-reject-publish", "R3  L=24,000 reject"),
+             ("R-C11-reject-correct", "R11 L=23,700 reject"),
+             ("R-C12-maxlen-correct-wide", "R12 L=59,750 drop-head")]
     fig, ax = plt.subplots(figsize=(7.2, 3.8))
     plotted = 0
     for cfg, label in picks:
@@ -339,7 +339,7 @@ def fig_slack(summaries):
         return None
     ax.axvline(0, color="#b22222", linewidth=1.0, linestyle="--")
     ax.annotate("deadline", xy=(0, 0), xytext=(0.02, 22.4), fontsize=8, color="#b22222")
-    ax.annotate("R2, L = 24 000: +35.49 s, off scale", xy=(0, 0), xytext=(-0.86, 20.6),
+    ax.annotate("R2, L = 24,000: +35.49 s, off scale", xy=(0, 0), xytext=(-0.86, 20.6),
                 fontsize=8, color="#555555")
     ax.set_xlim(-0.9, 0.45)
     ax.set_ylim(0, 24)

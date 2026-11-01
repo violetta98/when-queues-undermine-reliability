@@ -25,8 +25,9 @@ at the other set without moving anything:
 
     QLAB_RUNS=runs-aws QLAB_WORK=work-aws python3 analysis/verify.py
 
-`VERIFY.txt` is that script's output for the laptop set (51 of 51);
-`VERIFY-AWS.txt` for the AWS set (48 of 48). Both are checked in.
+`verification/verify-laptop.txt` is that script's output for the laptop set
+(51 of 51); `verification/verify-ec2.txt` for the EC2 set (48 of 48). Both are
+checked in.
 
 ## Why two
 
@@ -43,7 +44,7 @@ two experiments.
 Result: 47 of 48 conclusion-bearing comparisons inside tolerance. The exception is dead
 work for K2, 41.04% on the laptop against 35.51% on AWS; K2's useful loss, which is what
 the arm is in the set for, is 0.00% on both. Note what the tolerance set does not cover:
-worst-case slack to the deadline, which for R-C11 is +0.088 s on AWS and +0.017 s on the
+worst-case slack to the deadline, which for R-C11 is +0.089 s on AWS and +0.017 s on the
 laptop, negative in one of three replicates. Aggregate shares transfer; the margin that
 decides the sizing rule does not.
 
